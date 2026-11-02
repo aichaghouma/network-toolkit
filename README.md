@@ -64,3 +64,33 @@ network-toolkit/
 
 - Python 3
 - aucune bibliothèque externe
+
+## 2. Générateur de plan VLSM
+
+À partir d'un réseau de départ et d'une liste de besoins, le programme trie les besoins du plus grand au plus petit, calcule le plus petit bloc adapté à chacun et affiche le plan d'adressage. Il signale aussi un espace insuffisant.
+
+### Utilisation
+
+```bash
+python3 main.py vlsm 192.168.1.0/24 "LAN A=100" "LAN B=50" "LAN C=20" "LAN D=10"
+```
+
+Résultat (extrait) :
+
+```
+LAN A (100 machines demandées)
+  Réseau    : 192.168.1.0/25  (masque 255.255.255.128)
+  Hôtes     : 192.168.1.1 -> 192.168.1.126
+  Broadcast : 192.168.1.127
+
+LAN B (50 machines demandées)
+  Réseau    : 192.168.1.128/26  (masque 255.255.255.192)
+  Hôtes     : 192.168.1.129 -> 192.168.1.190
+  Broadcast : 192.168.1.191
+```
+
+Si le réseau est trop petit :
+
+```
+Erreur : Espace insuffisant dans 192.168.1.0/24 pour 'LAN B' (100 machines)
+```
