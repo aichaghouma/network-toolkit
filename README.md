@@ -94,3 +94,62 @@ Si le réseau est trop petit :
 ```
 Erreur : Espace insuffisant dans 192.168.1.0/24 pour 'LAN B' (100 machines)
 ```
+
+## 3. Simulateur CSMA/CD (JavaScript)
+
+CSMA/CD est le protocole d'accès de l'Ethernet partagé : une station écoute le câble avant d'émettre (Carrier Sense) et détecte les collisions pendant l'émission (Collision Detection). Cette partie est écrite en JavaScript (Node.js) et comporte deux volets :
+
+- un calcul qui indique si CSMA/CD est possible pour un débit, une distance et une taille de trame donnés ;
+- une simulation créneau par créneau de plusieurs stations qui partagent le même câble, avec le backoff exponentiel binaire.
+
+### Utilisation
+
+```bash
+node csma_cd_web/demo.js
+```
+
+Résultat :
+
+```
+Débit 10 Mbit/s, distance 2500 m, trame 64 octets
+  Propagation          : 12.5 µs
+  Aller-retour         : 25.0 µs
+  Émission de la trame : 51.2 µs
+  Taille minimale      : 31.25 octets
+  Distance maximale    : 5120 m
+  CSMA/CD fonctionne   : oui
+
+Simulation : 2 stations, 1 trame chacune
+Créneau 1 : collision [A, B]
+Créneau 2 : succes [A]
+Créneau 3 : succes [B]
+Créneaux : 3 | succès : 2 | collisions : 1 | libres : 0 | abandons : 0 | utilisation : 67 %
+```
+
+### Comment ça marche
+
+Le calcul (`csma.js`) vérifie que l'émetteur émet encore quand l'écho d'une collision lui revient :
+
+- temps de propagation = distance / vitesse du signal (environ 2×10^8 m/s)
+- aller-retour = 2 × temps de propagation
+- temps d'émission = taille de la trame (en bits) / débit
+- condition : temps d'émission >= aller-retour
+- taille minimale de trame = aller-retour × débit ; distance maximale = vitesse × temps d'émission / 2
+
+La simulation (`simulateur.js` et `moteur.js`) avance créneau par créneau :
+
+- une seule station qui émet : succès ;
+- deux stations ou plus : collision, puis chaque station attend un nombre de créneaux tiré au hasard entre 0 et 2^n - 1 après n collisions (plafond à n = 10) ;
+- après 16 collisions consécutives, la trame est abandonnée ;
+- à la fin, le programme affiche le journal et des statistiques (succès, collisions, abandons, taux d'utilisation).
+
+### Fichiers de la partie 3
+
+- `csma_cd_web/csma.js` : formules de propagation, taille minimale et distance maximale
+- `csma_cd_web/simulateur.js` : backoff exponentiel binaire et classe `Station`
+- `csma_cd_web/moteur.js` : boucle de simulation
+- `csma_cd_web/demo.js` : exemple d'utilisation
+
+### Prérequis
+
+- Node.js (aucune bibliothèque externe)
